@@ -39,10 +39,11 @@ Then ask questions like:
 - What are effective techniques for handling class imbalance?
 - Summarize recent advances in transformer architectures.
 - How does dropout improve generalization?
-- exit [to exit code]
+- exit [to exit application]
 
 📜 License
 MIT License © 2025 Felix Elias
 
 🤝 Contributing
 Pull requests welcome! For major changes, please open an issue first to discuss what you’d like to change.
+
