@@ -1,0 +1,137 @@
+Source: 
+https://app.readytensor.ai/publications/llm-neo-VYiwb8UTWTu9
+Subject:
+LLM NEO
+Content:
+Abstract
+We present LLM-Neo, a parameter-efficient knowledge distillation (KD) framework that leverages Low-Rank Adaptation (LoRA) to transfer knowledge from a large “teacher” model into a much smaller “student” model. Specifically, we distill Meta-Llama-3-8B (quantized to 4-bit) into Llama-3.2-1B augmented with LoRA adapters (r=4, α=8) on the Stanford Sentiment Treebank (SST-2) classification task. By training only ∼0.1 % of the student’s parameters via LoRA, LLM-Neo retains over 95 % of the teacher’s performance while achieving a final SST-2 accuracy of 0.9346. This approach reduces GPU memory usage and end-to-end training time, demonstrating that KD+LoRA is an effective, low-cost path to compressing large language models without sacrificing much accuracy.
+
+Introduction
+Large language models (LLMs) such as Meta-Llama-3-8B have demonstrated state-of-the-art performance on many NLP benchmarks but come at a high computational and memory cost. For real-world deployment—especially on resource-constrained devices—it is crucial to compress these models while retaining as much of their original accuracy as possible. Knowledge distillation (KD) [Hinton et al., 2015] is a popular compression technique that trains a smaller “student” model to mimic the outputs of a larger “teacher” model. However, naive KD still requires fine-tuning the majority of the student parameters, which can be expensive for models with hundreds of millions or billions of weights.
+
+Recently, Low-Rank Adaptation (LoRA) [Hu et al., 2022] emerged as a parameter-efficient fine-tuning method: instead of updating all weights, LoRA adds a pair of low-rank matrices into each transformer layer and only trains those. This combination drastically reduces the number of trainable parameters (often to 0.1–1 % of the model) while preserving performance. In this work, we propose LLM-Neo, which unifies KD and LoRA into a single pipeline for compressing large LLMs. We use Meta-Llama-3-8B (4-bit quantized) as the teacher and distill it into a LoRA-adorned Llama-3.2-1B student on the Stanford Sentiment Treebank (SST-2) dataset. Our method draws inspiration from the recent arXiv paper “
+Parameter Efficient Knowledge Distillation for Large Language Models
+,” adapting their ideas to the Llama-3 family. We show that by training just ∼0.1 % of parameters via LoRA, LLM-Neo achieves a final test accuracy of 0.9346 on SST-2—over 95 % of the teacher’s accuracy—while drastically reducing memory footprint and training time.
+
+Methodology
+Our goal is to transfer knowledge from a large 8-billion-parameter teacher (Meta-Llama-3-8B) into a 1-billion-parameter student (Llama-3.2-1B) with minimal additional trainable parameters. LLM-Neo achieves this via LoRA-based adapters inserted in each transformer layer and a hybrid KD loss that balances teacher imitation with ground-truth supervision.
+
+1. Teacher Model (4-bit quantized)
+Model: Meta-Llama-3-8B
+Quantization: We quantize the teacher to 4 bits using bitsandbytes to reduce GPU memory usage during distillation.
+Frozen Weights: The teacher’s weights remain frozen throughout training. At each batch, the teacher produces “soft targets” (logits) on SST-2 inputs.
+2. Student Model + LoRA Adapters
+Base: Llama-3.2-1B (pre-trained)
+LoRA Setup: We insert LoRA adapters (rank r = 4, scaling factor α = 8) into all query/key/value projection matrices of each transformer layer. Only these LoRA matrices (∼0.1 % of total parameters) are trainable. The remainder of Llama-3.2-1B remains frozen.
+Parameter Count: After LoRA injection, the total number of trainable parameters is ∼1.5 million (≈0.1 % of 1 B).
+3. Hybrid Distillation Loss
+We denote:
+
+(z^{T}_i) = teacher logits for sample (i)
+(z^{S}_i) = student logits for sample (i)
+(y_i) = ground-truth SST-2 label (0 or 1)
+The combined loss per sample is defined as:
+
+where:
+
+KL-Divergence Term uses a temperature (T = 2.0) to soften teacher probabilities.
+Cross-Entropy Term encourages the student to match the ground truth.
+Loss Mix Ratio (\alpha = 0.5).
+By freezing the majority of weights (both teacher and student) and updating only low-rank adapters, LLM-Neo dramatically reduces memory and compute cost compared to full fine-tuning.
+
+Experiments
+We evaluate LLM-Neo on SST-2 (Stanford Sentiment Treebank) to classify sentences as “positive” or “negative.” Below are detailed steps and dataset statistics.
+
+1. Dataset
+SST-2 (binary sentiment classification)
+Train Split: 67,349 samples
+Validation Split: 872 samples
+Preprocessing: Tokenize with Meta-Llama-3-Tokenizer. Truncate or pad to max length 128.
+2. Training Setup
+Hardware: Single NVIDIA GPU (48 GB)
+Teacher Loading:
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+teacher_tokenizer = AutoTokenizer.from_pretrained("Meta/Llama-3-8B-4bit")
+teacher_model = AutoModelForSequenceClassification.from_pretrained(
+    "Meta/Llama-3-8B-4bit", 
+    load_in_4bit=True,
+    device_map="auto"
+)
+teacher_model.eval()  # freeze
+Student with LoRA:
+from peft import LoraConfig, get_peft_model
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+student_tokenizer = AutoTokenizer.from_pretrained("NousResearch/Llama-3.2-1B")
+base_student = AutoModelForSequenceClassification.from_pretrained("NousResearch/Llama-3.2-1B")
+# Freeze full student
+for param in base_student.parameters():
+    param.requires_grad = False
+
+# Configure LoRA adapters
+lora_config = LoraConfig(
+    r=4,
+    lora_alpha=8,
+    target_modules=["q_proj", "k_proj", "v_proj"],
+    lora_dropout=0.1,
+    bias="none",
+    task_type="SEQ_CLS"
+)
+student_model = get_peft_model(base_student, lora_config)
+DataLoader: PyTorch DataLoader with batch size 16, shuffle train, no augmentation.
+Training Loop: For each batch, compute teacher logits, student logits, compute hybrid loss, backpropagate only through LoRA.
+3. Hyperparameter Summary
+Parameter	Value
+Epochs	1
+Batch Size	16
+Initial Learning Rate	5e-5
+LoRA Rank (r)	4
+LoRA Alpha (α)	8
+Temperature (KD)	2.0
+Loss Mix Ratio (α_gap)	0.5
+Weight Decay	0.01
+Optimizer	AdamW
+Max Sequence Length	128
+Gradient Accumulation	None
+4. Evaluation Metrics
+Validation Loss (combined CE + KD)
+Accuracy (binary classification)
+F1, Precision, Recall (for the positive class)
+All experiments run on a single-GPU setup with LoRA and 4-bit teacher to minimize memory.
+
+Results
+Below are the logged training checkpoints and corresponding validation metrics for LLM-Neo on SST-2:
+
+Step	Training Loss	Progress (Epoch %)	Validation Loss	Accuracy	F1	Precision	Recall
+1000	0.3856	0.2375	0.3681	0.9243	0.9273	0.9073	0.9482
+2000	0.3681	0.4751	0.3634	0.9266	0.9297	0.9077	0.9527
+3000	0.3648	0.7126	0.3599	0.9346	0.9366	0.9253	0.9482
+4000	0.3662	0.9501	0.3580	0.9278	0.9310	0.9062	0.9572
+Best Validation Accuracy: 0.9346 (Step 3000)
+Teacher (Meta-Llama-3-8B) Baseline Accuracy: ≈ 0.951 (on SST-2, single-shot inference)
+Parameter Efficiency: Only ∼0.1 % of student parameters (LoRA) are updated, total trainable params ≈ 1.5 M vs. 1 B.
+Memory Footprint:
+Teacher loaded in 4-bit (≈ 16 GB GPU memory)
+Student + LoRA adapters (≈ 8 GB)
+Total: ~ 24 GB vs. ~ 80 GB if fine-tuning both teacher and student in full precision.
+Inference Speed: Distilled Llama-3.2-1B with LoRA runs ~ 1.5× faster than 8 B teacher on a single GPU.
+These results confirm that LLM-Neo achieves over 95 % of teacher performance while requiring a fraction of GPU memory and training cost. The small drop (∼ 1.5 %) in absolute accuracy is offset by the drastic reduction in trainable parameters and resource usage.
+
+Conclusion
+We have introduced LLM-Neo, a simple yet effective framework for parameter-efficient knowledge distillation of large language models. By integrating LoRA into the student and using a hybrid KD+CE loss, we distill Meta-Llama-3-8B into Llama-3.2-1B with only ∼0.1 % of the student’s parameters trainable. On the SST-2 sentiment classification benchmark, LLM-Neo achieves 0.9346 accuracy—over 95 % of the teacher’s performance—while reducing GPU memory footprint by > 60 % and speeding up inference.
+
+Key takeaways:
+
+Parameter Efficiency: LoRA adapters allow us to update ≈ 1.5 M parameters instead of the entire 1 B-parameter student.
+Strong Performance: With only one epoch of LoRA-based KD, the student reaches within 2 percentage points of the teacher’s SST-2 accuracy.
+Future Work may explore:
+
+Extending LLM-Neo to multi-task or generative tasks (e.g., summarization, question answering).
+Investigating other PEFT methods (e.g., adapters, prefix tuning) alongside LoRA.
+Scaling to larger teacher–student pairs and more complex datasets to validate generality.
+🚀 Explore the Code
+Dive into the full implementation and all hyperparameter scripts on GitHub:
+
+➡️ 
+LLM NEO

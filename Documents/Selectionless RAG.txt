@@ -1,0 +1,52 @@
+Source:
+https://app.readytensor.ai/publications/selectionless-rag-OF0Hrmzv31E2
+Subject:
+Selectionless RAG
+Content:
+RAG of Documents Without Selection - POC
+This module provides high-level utilities for semantic chunking, embedding extraction, and efficient semantic search in documents using vector databases. It is designed to support retrieval-augmented generation (RAG) pipelines without manual selection and with refined semantic search for NLP applications.
+
+Features
+Semantic Chunking: Uses 
+chonkie.SemanticChunker
+ to split large texts into semantically meaningful chunks, improving retrieval accuracy.
+Embedding Extraction: Uses [utility_pack.embeddings.extract_embeddings] to generate vector representations for both chunks and entire documents.
+Vector Storage: Stores and manages embeddings using [utility_pack.vector_storage.MiniVectorDB], enabling fast similarity search and persistent storage.
+Search Without Selection: Enables searching for relevant documents without manual selection, returning those most semantically similar to a query.
+Contextual Retrieval: Supports context extraction from filtered sets of documents, useful for tasks such as question answering or summarization.
+Main Functions
+realizar_chunking_semantico_de_texto(texto, chunk_size=512): Splits text into semantic chunks.
+retirar_embeddings_e_salvar_no_minivector_db(texto, metadados, doc_name): Extracts embeddings from chunks and the full document, saving them in vector databases.
+buscar_semanticamente_entre_documentos(query, k=5): Finds the top-k most relevant documents for a query using semantic similarity.
+realizar_retirada_de_contexto_de_documentos_apropriados(docs_para_filtrar, query, k=5): Retrieves the most relevant contexts from a filtered set of documents.
+Benefits
+Automated Semantic Search: No manual tagging or selection required—just query and retrieve the most relevant content.
+Efficient Storage: Embeddings are stored persistently, allowing fast and scalable searches across large document collections.
+Contextual Retrieval: Returns not just document IDs but also original text and metadata for richer downstream processing.
+Easy Integration: Designed to work with other workspace modules such as utility_pack and chonkie.
+Example Usage
+from vector_db import retirar_embeddings_e_salvar_no_minivector_db, buscar_semanticamente_entre_documentos
+
+# Index a document
+doc_id = retirar_embeddings_e_salvar_no_minivector_db("Algum texto...", {"autor": "Alice"}, "doc1")
+
+# Search for relevant documents
+query = "O que é chunking semântico?"
+k = 3
+
+documentos_apropriados = buscar_semanticamente_entre_documentos(query, k)
+contextos = realizar_retirada_de_contexto_de_documentos_apropriados(
+    docs_para_filtrar=documentos_apropriados,
+    query=query,
+    k=k
+)
+print(contextos)
+When to Use
+Building RAG pipelines
+
+Semantic document search
+
+Contextual retrieval for chatbots or question answering systems
+
+Any NLP task requiring fast, accurate, and selection-free retrieval across large text corpora
+*See vector_db.py for implementation details.
