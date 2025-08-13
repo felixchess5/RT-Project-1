@@ -22,3 +22,27 @@ cd ml-research-assistant
 pip install -r requirements.txt
 
 Note: rename example.env_example -> .env and add missing information
+
+📁 Project Structure
+ml-research-assistant/
+├── chroma_loader.py       # Loads, chunks, embeds, and stores documents
+├── main.py                # Interactive Q&A interface
+├── documents/             # Folder containing .txt research papers
+├── .env                   # Environment variables
+├── requirements.txt       # Python dependencies
+└── README.md              # You're reading it!
+
+🧪 Usage
+python -u main.py
+
+Then ask questions like:
+- What are effective techniques for handling class imbalance?
+- Summarize recent advances in transformer architectures.
+- How does dropout improve generalization?
+- exit [to exit code]
+
+📜 License
+MIT License © 2025 Felix Elias
+
+🤝 Contributing
+Pull requests welcome! For major changes, please open an issue first to discuss what you’d like to change.
