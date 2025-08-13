@@ -1,0 +1,221 @@
+Source:
+https://app.readytensor.ai/publications/llm-shell-mi7D28yZiwtd
+Subject:
+LLM Shell
+Content:
+Zsh Ollama Command Helper
+This project enhances your Zsh terminal by allowing you to input natural language queries for shell commands you can't remember. By pressing Ctrl+B, your query is sent to an Ollama model, which generates the appropriate command. The command is displayed, and you're prompted to execute it or not (y/n).
+
+🎮 Demo
+https://github.com/user-attachments/assets/64c6c2df-d8a4-4360-adcb-b381a0907f18
+
+💡 Simply type your question and press Ctrl+B to get the command you need!
+
+Table of Contents
+Features
+Prerequisites
+Installation
+Configuration
+Usage
+Customization
+Troubleshooting
+TODO
+License
+✨ Features
+🗣️ Natural Language Queries
+Ask questions in plain English about shell commands
+
+🤖 Model Integration
+Uses your locally running Ollama instance with a finetuned model
+
+⚡ Command Execution
+Shows the generated command and prompts you to execute it
+
+🔄 Model Selection
+Easily switch between different Ollama models
+
+🎨 Customizable
+Adjust colors and default settings to your preference
+
+🔒 Privacy-Focused
+100% local execution - your queries never leave your machine
+
+Prerequisites
+Operating System: Unix-like system (Linux, macOS).
+Shell: Zsh.
+Python: Version 3.11.
+Ollama: Installed and running locally.
+jq: Command-line JSON processor.
+Installation
+1. Ensure Prerequisites Are Met
+Install Zsh
+If you don't have Zsh installed:
+
+# On Ubuntu/Debian
+sudo apt update
+sudo apt install zsh
+
+# On macOS (using Homebrew)
+brew install zsh
+Install Python 3.11
+# On Ubuntu/Debian
+sudo apt update
+sudo apt install python3.11 python3.11-venv
+
+# On macOS (using Homebrew)
+brew install python@3.11
+Install Ollama
+Follow the installation instructions from Ollama's official documentation.
+
+Install jq
+# On Ubuntu/Debian
+sudo apt update
+sudo apt install jq
+
+# On macOS (using Homebrew)
+brew install jq
+2. Run the install.sh Script
+./install.sh 
+3. Reload Your Zsh Configuration
+source ~/.zshrc 
+Configuration
+Default Ollama Model
+The default model is set to vitali87/shell-commands. You can change it by editing the export ZSH_OLLAMA_MODEL line in your ~/.zshrc.
+
+export ZSH_OLLAMA_MODEL="your-preferred-model"
+Usage
+Ask a Question
+Type your natural language query directly into the terminal prompt.
+
+how to list all files modified in the last 24 hours 
+Trigger the Helper
+Press Ctrl+B to activate the helper.
+
+Example Output:
+🤔 Asking Ollama (using model: vitali87/shell-commands)... 
+Your query: how to list all files modified in the last 24 hours 
+Generated command: find . -type f -mtime -1 
+Execute? [y/N] 
+Execute the Command
+Press y and hit Enter to execute the command. Press any other key to abort.
+
+Customization
+Changing the Model
+List Available Models
+set_ollama_model 
+Set a Different Model
+set_ollama_model your_model_name 
+Example:
+set_ollama_model llama2:7b 
+Customizing Colors
+The colors can be adjusted by modifying the color codes in the Zsh configuration.
+
+Color Codes:
+Black: \e[30m
+Red: \e[31m
+Green: \e[32m
+Yellow: \e[33m
+Blue: \e[34m
+Magenta: \e[35m
+Cyan: \e[36m
+White: \e[37m
+Reset: \e[0m
+Steps:
+Open the Zsh configuration file:
+
+nano ~/.zshrc 
+Locate the ollama_command_helper function.
+
+Modify the echo statements:
+
+echo -e "\e[33mYour query:\e[0m $user_query" 
+echo -e "\e[32mGenerated command:\e[0m $command" 
+Replace the color codes with your preferred ones.
+
+Save and exit the editor.
+
+Reload your Zsh configuration:
+
+source ~/.zshrc 
+Troubleshooting
+Error: No Command Generated
+Ensure your Ollama server is running and the specified model is available.
+
+Dependencies Not Found
+Make sure Python 3.11 and jq are installed on your system.
+
+Virtual Environment Issues
+If you encounter issues with the virtual environment:
+
+Remove the existing virtual environment:
+
+rm -rf ~/.config/zsh/ollama_env 
+Re-run the installation script:
+
+./install.sh 
+Reload your Zsh configuration:
+
+source ~/.zshrc 
+Powerlevel10k Warning
+If you see a warning related to Powerlevel10k's instant prompt:
+
+Place the Ollama Command Helper configuration after Powerlevel10k initialization in your ~/.zshrc.
+
+Alternatively, disable the instant prompt feature in Powerlevel10k.
+
+📋 Roadmap & TODO
+Progress
+
+🚀 Upcoming Features
+User Experience
+ 🎨 Add color themes support
+ Dark mode
+ Light mode
+ Terminal-native theme
+ ⌨️ Customizable keyboard shortcuts
+ 💾 Command history with search functionality
+ 🔍 Auto-completion suggestions
+AI/ML Enhancements
+ 🧠 Context-aware command suggestions
+ 📊 Learning from user corrections
+Performance & Integration
+ ⚡ Improve response time
+ 🔌 Plugin system for extensions
+ 📦 Package for different package managers
+ Homebrew
+ apt
+ pip
+🔄 In Progress
+User Feedback System
+ Basic feedback collection
+ 👍 Command rating system (thumbs up/down)
+ 📝 Feedback submission UI
+ 📊 Analytics dashboard for feedback
+Command History Enhancement
+ Basic history storage
+ 🔍 Searchable command history
+ 📈 Usage statistics
+ 🎯 Success/failure tracking
+🎯 Future Goals
+Community Features
+ 👥 Command sharing platform
+ 🌟 Popular commands repository
+ 🤝 Community contributions system
+Documentation
+ 📚 API documentation
+ 🎥 Video tutorials
+ 👩‍💻 Developer guide
+ 🌍 Internationalization
+✅ Completed
+ Basic command generation
+ Model selection interface
+ Installation script
+ Basic error handling
+Acknowledgments
+Ollama for providing the LLM serving platform.
+
+OpenAI for the openai Python package.
+
+Feel free to contribute to this project by submitting issues or pull requests.
+
+📊 Project Stats
