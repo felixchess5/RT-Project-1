@@ -206,5 +206,15 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Project specific ignores
+.env
 .venv/
-Variables/.venv/
+venv/
+DB/
+workspace/
+*.workspace
+
+# Content and database directories
+DB/
+content/
+none/

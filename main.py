@@ -68,19 +68,34 @@ def runner():
         api_key=os.getenv('GROQ_API_KEY')
     )
 
-    print("🔍 Ask a research question (type 'exit' to quit):")
+    print("Ask a research question (type 'exit' to quit):")
     while True:
-        query = input("\nYour question: ").strip()
+        try:
+            query = input("\nYour question: ").strip()
+        except EOFError:
+            print("\nGoodbye!")
+            break
+        except KeyboardInterrupt:
+            print("\nGoodbye!")
+            break
+        
         if query.lower() in {"exit", "quit"}:
             print("Goodbye!")
             break
 
-        answer, sources = answer_research_question(query, collection, embedding_model, llm)
-        print("\n🧠 AI Answer:\n", answer)
-        print("\n📚 Based on sources:")
-        unique_titles = sorted(set(chunk["title"] for chunk in sources))
-        for title in unique_titles:
-            print(f"- {title}")
+        if not query:
+            continue
+
+        try:
+            answer, sources = answer_research_question(query, collection, embedding_model, llm)
+            print("\nAI Answer:\n", answer)
+            print("\nBased on sources:")
+            unique_titles = sorted(set(chunk["title"] for chunk in sources))
+            for title in unique_titles:
+                print(f"- {title}")
+        except Exception as e:
+            print(f"Error processing question: {str(e)}")
+            print("Please try again or check your API keys.")
 
 
 
